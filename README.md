@@ -6,7 +6,7 @@ Only tested on CC 2018.
 
 
 Result Example:
-
+```
 {
   "artboardSize": {
     "width": 612,
@@ -41,6 +41,7 @@ Result Example:
       "zIndex": 1
     }
   ]
+ ```
 }
 
 
