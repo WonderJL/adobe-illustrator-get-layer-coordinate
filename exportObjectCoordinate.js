@@ -3,108 +3,112 @@
 // end of - js JSON library
 
 function getAllObjects(target, targetPrefix) {
-    var allObjects = []
-    var pageItems = target.pageItems
-    for (var i = 0; i < pageItems.length; i++) {
-        var pageItem = pageItems[i]
-        if (pageItem && pageItem.name.match(new RegExp(targetPrefix, "g"))) {
-            allObjects.push(pageItem)
-        }
+  var allObjects = []
+  var pageItems = target.pageItems
+  var pageItemsLength = pageItems.length
+  for (var i = 0; i < pageItemsLength; i++) {
+    var pageItem = pageItems[i]
+    if (pageItem && pageItem.name.match(new RegExp(targetPrefix, "g"))) {
+      // pageItem.name = pageItem.name + (pageItemsLength - i)
+      pageItem.cusZIndex = pageItemsLength - i
+      allObjects.push(pageItem)
     }
-    return allObjects
+  }
+  return allObjects
 }
 
 function getMetaData(targets) {
-    var allData = []
-    for (var i = 0; i < targets.length; i++) {
-        var target = targets[i]
-        var data = {
-            name: target.name,
-            url: '<resource_dir>' + target.name + '<resource_type>',
-            x: target.left,
-            y: target.top * -1,
-            width: target.width,
-            height: target.height,
-            zIndex: target.zOrderPosition
-        }
-        allData.push(data)
+  var allData = []
+  for (var i = 0; i < targets.length; i++) {
+    var target = targets[i]
+
+    var data = {
+      name: target.name,
+      url: '<resource_dir>' + target.name + '<resource_type>',
+      x: target.left,
+      y: target.top * -1,
+      width: target.width,
+      height: target.height,
+      zIndex: target.cusZIndex
     }
-    return allData
+    allData.push(data)
+  }
+  return allData
 }
 
 function exportFile(context, filepath) {
 
-    var randomname = Number(new Date());
-    // get the text file
-    var write_file = File(filepath);
+  var randomname = Number(new Date());
+  // get the text file
+  var write_file = File(filepath);
 
-    if (!write_file.exists) {
-        // if the file does not exist create one
-        write_file = new File(filepath);
-    } else {
-        // if it exists ask the user if it should be overwritten
-        var res = confirm("The file already exists. Should I overwrite it", true, "titleWINonly");
-        // if the user hits no stop the script
-        if (res !== true) {
-            return false;
-        }
+  if (!write_file.exists) {
+    // if the file does not exist create one
+    write_file = new File(filepath);
+  } else {
+    // if it exists ask the user if it should be overwritten
+    var res = confirm("The file already exists. Should I overwrite it", true, "titleWINonly");
+    // if the user hits no stop the script
+    if (res !== true) {
+      return false;
     }
+  }
 
-    var out; // our output
-    // we know already that the file exist
-    // but to be sure
-    if (write_file !== '') {
-        //Open the file for writing.
-        out = write_file.open('w', undefined, undefined);
-        write_file.encoding = "UTF-8";
-        write_file.lineFeed = "Unix"; //convert to UNIX lineFeed
-        // txtFile.lineFeed = "Windows";
-        // txtFile.lineFeed = "Macintosh";
-    }
-    // got an output?
-    if (out !== false) {
-        // loop the list and write each item to the file
-        write_file.writeln(context);
-        // always close files!
-        write_file.close();
-        return true;
-    }
+  var out; // our output
+  // we know already that the file exist
+  // but to be sure
+  if (write_file !== '') {
+    //Open the file for writing.
+    out = write_file.open('w', undefined, undefined);
+    write_file.encoding = "UTF-8";
+    write_file.lineFeed = "Unix"; //convert to UNIX lineFeed
+    // txtFile.lineFeed = "Windows";
+    // txtFile.lineFeed = "Macintosh";
+  }
+  // got an output?
+  if (out !== false) {
+    // loop the list and write each item to the file
+    write_file.writeln(context);
+    // always close files!
+    write_file.close();
+    return true;
+  }
 
-    return false
+  return false
 }
 
 var activeDocument = app.activeDocument
 if (activeDocument) {
-    var targetPrefix = prompt("Search for layer with prefix of", "the_ptefix")
-    var allObjects = getAllObjects(app.activeDocument, targetPrefix)
-    var allObjectMetaData = getMetaData(allObjects)
+  var targetPrefix = prompt("Search for layer with prefix of", "the_ptefix")
+  var allObjects = getAllObjects(app.activeDocument, targetPrefix)
+  var allObjectMetaData = getMetaData(allObjects)
 
-    if (allObjectMetaData.length > 0) {
-        var cropBox = app.activeDocument.cropBox
-        var artboardWidth = cropBox[2]
-        var artboardHeight = cropBox[3] * -1
+  if (allObjectMetaData.length > 0) {
+    var cropBox = app.activeDocument.cropBox
+    var artboardWidth = cropBox[2]
+    var artboardHeight = cropBox[3] * -1
 
-        var exportData = {}
-        exportData.artboardSize = {
-            width: artboardWidth,
-            height: artboardHeight,
-        }
-        exportData.metaData = allObjectMetaData
-
-        var activeDocFilePath = (app.activeDocument.fullName + "").replace(app.activeDocument.name, "")
-        var exportFileName = "metadata.json";
-        var filepath = activeDocFilePath + "metadata.json";
-
-        var exportResult = exportFile(JSON.stringify(exportData, null, 2), filepath)
-
-        if (exportResult) {
-            alert("Done, all metadata of layers with prefix `" + targetPrefix + "` exported to " + filepath)
-        } else {
-            alert("Export error, please try again")
-        }
-    } else {
-        alert("Export error, no object found of `" + targetPrefix + "`, please try other layer prefix")
+    var exportData = {}
+    exportData.artboardSize = {
+      width: artboardWidth,
+      height: artboardHeight,
     }
+    exportData.metaData = allObjectMetaData
+
+    var activeDocFilePath = (app.activeDocument.fullName + "").replace(app.activeDocument.name, "")
+    var exportFileName = "metadata.json";
+    var filepath = activeDocFilePath + "metadata.json";
+
+    var exportResult = exportFile(JSON.stringify(exportData, null, 2), filepath)
+
+    if (exportResult) {
+      alert("Done, all metadata of layers with prefix `" + targetPrefix + "` exported to " + filepath)
+    } else {
+      alert("Export error, please try again")
+    }
+  } else {
+    alert("Export error, no object found of `" + targetPrefix + "`, please try other layer prefix")
+  }
 } else {
-    alert("No active document")
+  alert("No active document")
 }
